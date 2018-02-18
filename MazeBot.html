@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+
+<style>
+
+html {
+font-family: sans-serif;
+overflow: hidden;
+}
+</style>
+
+<script src = "./js/Hero.js"></script>
+<script src = "./js/Maze.js"></script>
+<script src = "./js/CollisionTest.js"></script>
+<script src = "./js/Enemy.js"></script>
+<script src = "./js/Bullet.js"></script>
+<script src = "./js/HP.js"></script>
+<script>
+
+var stage;
+var stage2;
+var scoreTable,shade,shader;
+var y=0;
+var x=0;
+var hero, heart, hp, bullet;
+var blockArray = [];
+var bulletArray = [];
+var enemyArray = [];
+var heartArray = [];
+var lightArray = [];
+var hpArray = [];
+var h_musicArray = [];
+var Ex =0;
+var Ey =0;
+var key;
+var st, st2;
+var intro, fail, failImg, bt_tryAgain, win;
+var shoot, heroHurt, lightOn, virusKill, explosion, heart, roboBgm,heartGain, success;
+
+function getXY(){
+
+	Ey = event.clientY;
+	Ex = event.clientX;
+
+	//alert(Ex + ", " +Ey);
+}
+
+window.addEventListener("load", function(){
+
+
+	stage=document.createElement("div");
+	stage.style.width=800+"px";
+	stage.style.height=800+"px";
+	stage.style.position="absolute";
+	stage.style.margin = 50 + "px";
+	stage.style.left = 200 + "px";
+	stage.style.background= "url('./images/tileBg.jpg')";
+
+	stage2=document.createElement("div");
+	stage2.style.width = 80 +"px";
+	stage2.style.height = 350 + "px";
+	stage2.style.top = 50 + "px"; 
+	stage2.style.left = 1015 + "px"; 
+	stage2.style.margin = 50 + "px";
+	stage2.style.position = "absolute";
+	stage2.style.float = "left";
+
+	scoreTable = document.createElement("div");
+	scoreTable.style.width = 300 +"px";
+	scoreTable.style.height = 80 + "px";
+	scoreTable.style.top = 400 + "px";
+	scoreTable.style.left= 1030 + "px" 
+	scoreTable.style.margin = 50 + "px";
+	scoreTable.style.font = "bold 20px arial,serif";
+	scoreTable.style.position = "absolute";
+
+	shade = document.createElement("div");
+	shade.style.width = 810 +"px";
+	shade.style.height = 820 + "px";
+	shade.style.margin = 50 + "px";
+	shade.style.left = 200 + "px";
+	//shade.style.font = "bold 20px arial,serif";
+	shade.style.position = "absolute";
+	//shade.style.background = "gray";
+	shade.style.overflow = "hidden"; 
+	//shade.style.filter = "alpha(opacity=0.5)"; //오페서티?
+
+	intro = document.createElement("img");
+	intro.style.left = -100 + "px";
+	intro.style.top = -350 + "px";
+	intro.style.width = 600 + "px";
+	intro.style.position = "absolute";
+	intro.src = "./images/intro.png";
+	//인트로 들어갈 자리!
+	intro.addEventListener("click",function(){
+		fail.removeChild(intro);
+		});
+
+
+	fail = document.createElement("div");
+	fail.style.left = 455 + "px";
+	fail.style.top = 550 + "px";
+	fail.style.width = 300 + "px";
+	fail.style.height = 200 + "px";
+
+
+	win = document.createElement("img");
+	win.src = "./images/win.png";
+	win.style.left = -100 + "px";
+	win.style.top = -300 + "px";
+	win.style.width = 600 + "px";
+	win.style.position= "absolute";
+	//fail.appendChild(win);
+
+	failImg = document.createElement("img");
+	failImg.src = "./images/failImg.png";
+	failImg.style.position = "absolute";
+	failImg.style.width = 300 +"px";
+	failImg.style.float = "left";
+	failImg.style.left = 50 + "px";
+	failImg.style.top = -200 + "px";
+	fail.style.position = "absolute";
+	//fail.appendChild(failImg);
+	failImg.addEventListener("click",function(){
+		location.reload();
+		});
+
+
+/*	bt_tryAgain = document.createElement("input");
+	bt_tryAgain.type = "button"; 
+	bt_tryAgain.value = "Try Again / 다시하기";
+	bt_tryAgain.style.left = 310 + "px";
+	bt_tryAgain.style.top = 420 + "px";
+	bt_tryAgain.style.position = "absolute";
+	//bt_tryAgain.disabled = "false";
+	//hero에서 죽었을때 appendChild */
+
+
+
+	document.body.appendChild(stage);
+	document.body.appendChild(stage2);
+	document.body.appendChild(scoreTable);
+	document.body.appendChild(shade);
+	document.body.appendChild(fail);
+	fail.appendChild(intro);
+	//fail.appendChild(failImg);
+
+	createMusic();
+	makeShade();
+	createMaze();
+	createHero();
+	createHeart();
+	createHP(); 
+	createEnemy();
+	createLight();
+	//hero.music();
+	play();
+	//createEnemy();
+	//주인공 생성
+	//createEnemy();//적군생성
+
+	
+	//키보드 누를때
+	document.body.addEventListener("keydown", function(){
+		key=event.keyCode;
+		if(key==37){
+			hero.bounce();
+			hero.walkL();
+		}else if(key==39){
+			hero.bounce();
+			hero.walkR();
+		}else if(key==38){
+			hero.bounce();
+			hero.walkB();
+		}else if(key==40){
+			hero.bounce();
+			hero.walkF();
+		}else if(key==32){
+				shoot.load();
+				shoot.play();
+				//총알 만들고 캐릭터가 바라보는 방향으로 총알이 나가게 설정한다.
+				createBullet();
+				if(hero.d==0){
+					bullet.velX = 8;
+					bullet.velY = 0;
+				}else if (hero.d ==1){
+					bullet.velX = -8;
+					bullet.velY = 0;
+				}else if(hero.d ==2){
+					bullet.velX = 0;
+					bullet.velY = 8;
+				}else if (hero.d ==3){
+					bullet.velX = 0;
+					bullet.velY = -8;
+				}
+				bullet.init();
+		}
+		
+	});
+
+	//키보드 뗄때
+	document.body.addEventListener("keyup", function(){
+		key=event.keyCode;
+		if(key==37 || key == 39){
+			hero.velX=0;
+			hero.stop();
+		}else if(key==38 || key==40){
+			hero.velY=0;
+			hero.stop();
+		}					
+	});
+}); //바디 온로드 종료.
+
+function createHero(){
+	hero = new Hero(stage,"./images/h_walkF1.png",400,370,75,75);
+	hero.create();	//ship.init();
+}
+
+function createMusic(){ //음악 만들기
+	sucess = new Audio("./music/sucess.mp3");
+	heartGain = new Audio("./music/heart.mp3");
+	shoot = new Audio("./music/shoot.wav");
+	explosion = new Audio("./music/explosion.wav");
+	heroHurt = new Audio("./music/virusKill.wav");
+	lightOn = new Audio("./music/lightOn.mp3");
+	virusKill = new Audio("./music/virusKill.wav");
+	//roboBgm = new Music("./music/roboBgm.mp3");
+	roboBgm = new Audio("./music/roboBgm.mp3"); 
+if (typeof roboBgm.loop == 'boolean')
+{
+    roboBgm.loop = true;
+}
+else
+{
+    roboBgm.addEventListener('ended', function() {
+        this.currentTime = 0;
+        this.play();
+    }, false);
+}
+
+//roboBgm.play();
+
+
+	roboBgm.play();
+
+}
+
+
+function makeShade(){
+	shader = document.createElement("img");
+	shader.src = "./images/shader2_1.png";
+	shader.style.position = "absolute";
+	shader.style.width = "1600" + "px";
+	shader.style.height = "1600" + "px";
+}
+
+
+function createMaze(){
+
+	var block0 = new Maze(stage,"./images/block_1.png",293,290,199,25); //중심 가로
+	var block1 = new Maze(stage,"./images/block_3.png",293,290,25,190); //중심 세로(left)
+	var block2 = new Maze(stage,"./images/block_1.png",293,470,65,25); //중심가로2_1 (압구)
+	var block3 = new Maze(stage,"./images/block_1.png",432,470,65,25); //중심가로2_2 (입구)
+	var block4 = new Maze(stage,"./images/block_3.png",472,290,25,190); //중심세로2(right)
+	
+	var block5 = new Maze(stage,"./images/block_1.png",210,190,280,25); //박스1 가로1
+	var block6 = new Maze(stage,"./images/block_1.png",200,570,405,25); //박스1 가로2
+	var block7 = new Maze(stage,"./images/block_3.png",198,190,20,405); //박스1 세로1
+	var block8 = new Maze(stage,"./images/block_1.png",215,394,80,25); //박스1 가로 가림막1
+	var block9 = new Maze(stage,"./images/block_3.png",580,190,25,170); //박스1 세로2(입구)
+	var block10 = new Maze(stage,"./images/block_3.png",580,470,25,120); //박스1 세로3(입구)
+	var block11 = new Maze(stage,"./images/block_1.png",580,330,25,35); //박스1 세로2(입구)_cap
+
+	var block12 = new Maze(stage,"./images/block_1.png",110,105,450,15); //박스2 가로1
+	var block13 = new Maze(stage,"./images/block_3.png",680,300,20,300); //박스2 세로2(right)
+	var block14 = new Maze(stage,"./images/block_1.png",680,590,100,25); //박스2 가로3(맨 오른쪽 첫번째 가로)
+	var block15 = new Maze(stage,"./images/block_3.png",110,105,15,130); //박스2 세로1(left)
+	var block16 = new Maze(stage,"./images/block_1.png",110,210,15,30); //박스2 세로1(left)_cap
+	var block17 = new Maze(stage,"./images/block_1.png",110,270,15,30); //박스2 세로1(left)_cap
+	var block18 = new Maze(stage,"./images/block_3.png",680,700,15,100); //박스2 세로3
+	var block19 = new Maze(stage,"./images/block_3.png",270,580,25,200); //박스2 세로2(down_left)
+
+	var block20 = new Maze(stage,"./images/block_g1.png",0,0,805,35); //테두리 가로1
+	var block21 = new Maze(stage,"./images/block_g1.png",0,780,805,35); //테두리 가로2
+	var block22 = new Maze(stage,"./images/block_g2.png",0,0,25,790); //테두리 세로1
+	var block23 = new Maze(stage,"./images/block_g2.png",780,0,25,790); //테두리 세로2
+
+	var block24 = new Maze(stage,"./images/block_3.png",364,107,15,100); //테두리3 세로2
+	var block25 = new Maze(stage,"./images/block_3.png",113,410,15,200); //테두리3 세로2
+	var block26= new Maze(stage,"./images/block_1.png",120,510,80,25); //테두리3 가로2
+	var block27= new Maze(stage,"./images/block_1.png",370,660,200,15); //테두리3 가로2
+
+	var block28= new Maze(stage,"./images/block_3.png",680,30,20,110); //테두리 맨오른쪽 세로
+	var block29= new Maze(stage,"./images/block_1.png",110,660,20,20); //맨왼쪽 아래쪽 중앙 돌
+
+
+
+	
+	block0.init();
+	block1.init();
+	block2.init();
+	block3.init();
+	block4.init();
+	block7.init();
+	block6.init();
+	block5.init();//5와 6 순서바뀜
+	block8.init();
+	block9.init();
+	block10.init();
+	block11.init();
+	block12.init();
+	block13.init();
+	block14.init();
+	block15.init();
+	block16.init();
+	block17.init();
+	block18.init();
+	block19.init();
+	block20.init();
+	block21.init();
+	block22.init();
+	block23.init();
+	block24.init();
+	block25.init();
+	block26.init();
+	block27.init();
+	block28.init();
+	block29.init();
+
+
+
+//	blockArray = ["block0","block2","block3","block4","block5","block6","block7"]
+	
+	blockArray = [block0,block1,block2,block3,block4,block5,block6,block7,block8,block9,block10,block11,block12,block13,block14,block15,block16,block17,block18,block19,block20,block21,block22,block23,block24,block25,block26,block27,block28,block29];
+	console.log(blockArray[3].src);	
+}
+
+function createHeart(){
+	
+	for(var i = 0; i <5; i++){
+
+		//stage, src, x, y, width, height
+		heart = document.createElement("img");
+		heart.src = "./images/heart.png"
+		heart.style.width = 45 + "px";
+		heart.style.height = 45 + "px";
+		heart.style.position = "absolute";
+		heart.style.margin = 15 + "px";
+		heart.style.top = i*60 + "px";
+		stage2.appendChild(heart);
+		heartArray.push(heart);
+	}
+}
+
+function createHP(){
+	var hp = new HP(stage,"./images/heart.gif",50,100,35,35);
+	var hp1 = new HP(stage,"./images/heart.gif",720,500,35,35);
+	var hp2 = new HP(stage,"./images/heart.gif",50,500,35,35);
+	var hp3 = new HP(stage,"./images/heart.gif",50,100,35,35);
+	var hp4 = new HP(stage,"./images/heart.gif",280,140,35,35);
+	var hp5 = new HP(stage,"./images/heart.gif",720,710,35,35);
+	var hp6 = new HP(stage,"./images/heart.gif",240,450,35,35);
+
+	
+	hp.init(); 
+	hp1.init();
+	hp2.init();
+	hp3.init();
+	hp4.init();
+	hp5.init();
+	hp6.init();
+
+	hpArray.push(hp);
+	hpArray.push(hp1);
+	hpArray.push(hp2);
+	hpArray.push(hp3);
+	hpArray.push(hp4);
+	hpArray.push(hp5);
+	hpArray.push(hp6);
+
+}
+
+function createLight(){
+	var light1 = new HP(stage,"./images/light.png",380,100,80,100);
+	var light2 = new HP(stage,"./images/light.png",700,50,80,100);
+	var light3 = new HP(stage,"./images/light.png",220,240,80,100);
+	var light4 = new HP(stage,"./images/light.png",120,550,80,100);
+
+	light1.init(); 
+	light2.init();
+	light3.init();
+	light4.init();
+
+	lightArray.push(light1);
+	lightArray.push(light2);
+	lightArray.push(light3);
+	lightArray.push(light4);
+}
+
+function createBullet(){
+	 bullet = new Bullet(stage, "./images/ball.png", hero.x + 20, hero.y + 20,15,15);
+	 bulletArray.push(bullet);  
+}
+
+function createEnemy(){
+	enemyY1 = new Enemy(stage,"./images/enemy2.png",60,50,40,40);
+	enemyY2 = new Enemy(stage,"./images/enemy2.png",350,520,40,40);
+	enemyY3 = new Enemy(stage,"./images/enemy2.png",520,140,40,40);
+	enemyY4 = new Enemy(stage,"./images/enemy2.png",145,560,40,40);
+
+	enemyB1 = new Enemy(stage,"./images/enemy1.png",625,430,30,30);
+	enemyB2 = new Enemy(stage,"./images/enemy1.png",150,185,30,30);
+	enemyB3 = new Enemy(stage,"./images/enemy1.png",150,140,30,30);
+	enemyB4 = new Enemy(stage,"./images/enemy1.png",350,610,30,30);
+	enemyB5 = new Enemy(stage,"./images/enemy1.png",50,720,30,30);
+	enemyB6 = new Enemy(stage,"./images/enemy1.png",520,400,30,30);
+	enemyB7 = new Enemy(stage,"./images/enemy1.png",340,233,30,30);
+	enemyB8 = new Enemy(stage,"./images/enemy1.png",620,220,30,30);
+
+	enemyK1 = new Enemy(stage,"./images/enemy3.png",320,700,65,65);
+	enemyK2 = new Enemy(stage,"./images/enemy3.png",705,80,65,65);
+
+	enemyY1.init();
+	enemyY2.init();
+	enemyY3.init();
+	enemyY4.init();	
+	enemyB1.init();
+	enemyB2.init();
+	enemyB3.init();
+	enemyB4.init();
+	enemyB5.init();
+	enemyB6.init();
+	enemyB7.init();
+	enemyB8.init();
+
+	enemyK1.init();
+	enemyK2.init();
+
+
+	enemyArray.push(enemyY1);
+	enemyArray.push(enemyY2);
+	enemyArray.push(enemyY3);
+	enemyArray.push(enemyY4);
+	
+	enemyArray.push(enemyB1);
+	enemyArray.push(enemyB2);
+	enemyArray.push(enemyB3);
+	enemyArray.push(enemyB4);
+	enemyArray.push(enemyB5);
+	enemyArray.push(enemyB6);
+	enemyArray.push(enemyB7);
+	enemyArray.push(enemyB8);
+
+	enemyArray.push(enemyK1);
+	enemyArray.push(enemyK2);
+
+	scoreTable.innerHTML = "<font color = '#FFC0CB'>Virus Count : </font><br><font size = 30 color = 'white'> " + enemyArray.length + "</font>";
+
+}
+
+function failMsg(){
+		
+		fail.appendChild(failImg); //실험
+
+}
+
+function play(){ //한가지 interval로 hero와 총알 돌리기. 
+		 st = setInterval(function(){
+		   hero.move();
+
+		   for(var i = 0; i<bulletArray.length; i++){
+		   bulletArray[i].move();
+		   }
+		   },35);
+
+		 st2 = setInterval(function(){
+		
+		 for(var i = 0 ; i< enemyArray.length; i++){
+		enemyArray[i].move();
+		}
+		}, 90);
+
+}
+
+function setLo(){
+	window.location = "./images/ball.png"; //첫화면에서 로드할때. 
+}
+
+
+</script>
+ </head>
+ <body onclick="getXY()" background = "./images/bg1.jpg" backgroundRepeat = "no-repeat">
+ 	<button onclick="setLo()"></button>
+ </body>
+</html>
