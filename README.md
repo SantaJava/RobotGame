@@ -1,5 +1,5 @@
 # RobotGame
-* This is a small game I made to practive Javascript. Enjoy!
+* Web based game created with Vanila Javascript.
 * RobotGame _ HTML/ JS / CSS
 
 screenshots
